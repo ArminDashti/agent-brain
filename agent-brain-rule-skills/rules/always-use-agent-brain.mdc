@@ -1,0 +1,18 @@
+---
+description: >-
+  Prefer agent-brain MCP to store durable experience (solutions, procedures,
+  expertise, general knowledge) and to search before reinventing fixes.
+alwaysApply: true
+---
+
+# Always use agent-brain when useful
+
+When you learn a reusable solution, procedure, or expertise in this session:
+
+1. Store it via `agent-brain-mcp` (`store_knowledge`) with the right `kind`.
+2. Choose `store_target`:
+   - `postgres` — exact filters, lists, structured lookup
+   - `qdrant` — semantic similarity / “find something like this”
+   - `both` — should be listable and searchable
+3. Before solving a familiar problem, call `search_knowledge` (hybrid) first.
+4. Do not confuse agent-brain with session-log or centralized-agent-data tools.
