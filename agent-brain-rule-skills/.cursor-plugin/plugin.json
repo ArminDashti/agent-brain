@@ -2,14 +2,14 @@
   "name": "agent-brain-rule-skills",
   "displayName": "Agent Brain",
   "version": "1.0.0",
-  "description": "Rules and skills for storing and retrieving agent experience via agent-brain-mcp.",
+  "description": "Rules and skills for agent-brain knowledge and Long term memory (session ingest) via MCP.",
   "author": {
     "name": "Armin Dashti"
   },
   "license": "MIT",
-  "keywords": ["cursor", "agent", "knowledge", "qdrant", "mcp"],
+  "keywords": ["cursor", "agent", "knowledge", "qdrant", "mcp", "sessions"],
   "category": "developer-tools",
-  "tags": ["agent", "knowledge", "mcp"],
+  "tags": ["agent", "knowledge", "mcp", "long-term-memory"],
   "skills": "./skills/",
   "rules": "./rules/"
 }

@@ -66,6 +66,12 @@ func main() {
 			authed.POST("/knowledge/search", h.SearchKnowledge)
 			authed.GET("/knowledge/:id", h.GetKnowledge)
 			authed.DELETE("/knowledge/:id", h.DeleteKnowledge)
+
+			authed.POST("/sessions/ingest", h.IngestSession)
+			authed.GET("/sessions", h.ListSessions)
+			authed.GET("/sessions/:uuid", h.GetSession)
+			authed.GET("/sessions/:uuid/thinking", h.GetSessionThinking)
+			authed.GET("/sessions/:uuid/turns", h.GetSessionTurns)
 		}
 	}
 	log.Printf("listening on %s", cfg.Addr)

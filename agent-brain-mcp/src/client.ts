@@ -79,4 +79,28 @@ export class BrainClient {
   deleteKnowledge(id: string) {
     return this.authed(`/api/v1/knowledge/${id}`, { method: 'DELETE' })
   }
+
+  ingestSession(body: unknown) {
+    return this.authed('/api/v1/sessions/ingest', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+  }
+
+  listSessions(q?: string) {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : ''
+    return this.authed(`/api/v1/sessions${qs}`)
+  }
+
+  getSession(uuid: string) {
+    return this.authed(`/api/v1/sessions/${uuid}`)
+  }
+
+  getSessionThinking(uuid: string) {
+    return this.authed(`/api/v1/sessions/${uuid}/thinking`)
+  }
+
+  getSessionTurns(uuid: string) {
+    return this.authed(`/api/v1/sessions/${uuid}/turns`)
+  }
 }

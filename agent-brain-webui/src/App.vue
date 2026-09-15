@@ -37,6 +37,7 @@ function logout() {
             {{ KIND_LABELS[item.kind] }}
           </RouterLink>
           <RouterLink class="hover:text-foreground" to="/search">Search</RouterLink>
+          <RouterLink class="hover:text-foreground" to="/long-term-memory">Long term memory</RouterLink>
         </nav>
         <button class="ml-auto text-sm text-muted-foreground hover:text-foreground" @click="logout">
           Sign out
