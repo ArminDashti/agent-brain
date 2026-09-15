@@ -1,0 +1,129 @@
+package main
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/ArminDashti/agent-brain/agent-brain-dispatcher-win/internal/api"
+	"github.com/ArminDashti/agent-brain/agent-brain-dispatcher-win/internal/extract"
+)
+
+func main() {
+	if len(os.Args) < 2 {
+		printUsage()
+		os.Exit(2)
+	}
+	switch os.Args[1] {
+	case "ingest":
+		os.Exit(runIngest(os.Args[2:]))
+	case "help", "-h", "--help":
+		printUsage()
+	default:
+		fail(fmt.Sprintf("unknown command %q", os.Args[1]))
+		os.Exit(2)
+	}
+}
+
+func printUsage() {
+	fmt.Fprintf(os.Stderr, `agent-brain-dispatcher — extract Cursor session and ingest via agent-brain-api
+
+Usage:
+  agent-brain-dispatcher ingest --uuid <uuid> [flags]
+
+Flags:
+  --uuid      Session/composer UUID (required)
+  --db        Path to state.vscdb (default: %%APPDATA%%\Cursor\User\globalStorage\state.vscdb)
+  --api-url   agent-brain-api base URL (default: http://127.0.0.1:8220)
+  --out       Optional path to write extract JSON
+  --username  API username (env AGENT_BRAIN_USERNAME)
+  --password  API password (env AGENT_BRAIN_PASSWORD)
+
+Env:
+  AGENT_BRAIN_API_URL, AGENT_BRAIN_USERNAME, AGENT_BRAIN_PASSWORD, AGENT_BRAIN_STATE_VSCDB
+`)
+}
+
+func runIngest(args []string) int {
+	fs := flag.NewFlagSet("ingest", flag.ContinueOnError)
+	fs.SetOutput(os.Stderr)
+	uuid := fs.String("uuid", "", "session UUID")
+	dbPath := fs.String("db", "", "state.vscdb path")
+	apiURL := fs.String("api-url", "", "API base URL")
+	outPath := fs.String("out", "", "optional extract JSON output path")
+	username := fs.String("username", "", "API username")
+	password := fs.String("password", "", "API password")
+	if err := fs.Parse(args); err != nil {
+		return 2
+	}
+
+	u := strings.TrimSpace(*uuid)
+	if u == "" {
+		return fail("uuid is required")
+	}
+
+	db := firstNonEmpty(*dbPath, os.Getenv("AGENT_BRAIN_STATE_VSCDB"), defaultDBPath())
+	base := firstNonEmpty(*apiURL, os.Getenv("AGENT_BRAIN_API_URL"), "http://127.0.0.1:8220")
+	user := firstNonEmpty(*username, os.Getenv("AGENT_BRAIN_USERNAME"), "armin")
+	pass := firstNonEmpty(*password, os.Getenv("AGENT_BRAIN_PASSWORD"), "dopadopa123")
+
+	raw, err := extract.Session(u, db)
+	if err != nil {
+		return fail(err.Error())
+	}
+
+	if *outPath != "" {
+		if err := os.MkdirAll(filepath.Dir(*outPath), 0o755); err != nil {
+			return fail(err.Error())
+		}
+		if err := os.WriteFile(*outPath, raw, 0o644); err != nil {
+			return fail(err.Error())
+		}
+	}
+
+	client := api.New(base, user, pass)
+	res, err := client.IngestSession(raw)
+	if err != nil {
+		return fail(err.Error())
+	}
+
+	out := map[string]any{
+		"ok":            true,
+		"uuid":          res.UUID,
+		"turn_count":    res.TurnCount,
+		"context_pct":   res.ContextPct,
+		"input_tokens":  res.InputTokens,
+		"output_tokens": res.OutputTokens,
+	}
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetEscapeHTML(false)
+	_ = enc.Encode(out)
+	return 0
+}
+
+func defaultDBPath() string {
+	appData := os.Getenv("APPDATA")
+	if appData == "" {
+		return ""
+	}
+	return filepath.Join(appData, "Cursor", "User", "globalStorage", "state.vscdb")
+}
+
+func firstNonEmpty(vals ...string) string {
+	for _, v := range vals {
+		if strings.TrimSpace(v) != "" {
+			return strings.TrimSpace(v)
+		}
+	}
+	return ""
+}
+
+func fail(msg string) int {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetEscapeHTML(false)
+	_ = enc.Encode(map[string]any{"ok": false, "error": msg})
+	return 1
+}
