@@ -1,0 +1,31 @@
+---
+description: >-
+  Prefer agent-brain MCP to store durable experience (resolved issues, task
+  guides, expertise, general knowledge) and to search before reinventing fixes.
+  Sessions (Cursor chats) are separate: use ingest_session / list_sessions /
+  Windows dispatcher sync.
+alwaysApply: true
+---
+
+# Always use agent-brain when useful
+
+## Knowledge (durable experience)
+
+When you learn a reusable solution, procedure, or expertise in this session:
+
+1. Store it via `agent-brain-mcp` (`store_knowledge`) with the right `kind`.
+2. Choose `store_target`:
+   - `sqlite` — exact filters, lists, structured lookup
+   - `qdrant` — semantic similarity / “find something like this”
+   - `both` — should be listable and searchable
+3. Before solving a familiar problem, call `search_knowledge` (hybrid) first.
+
+## Sessions (Cursor chats)
+
+Cursor session telemetry (context %, tokens, thinking, turns) lives in
+SQLite tables `sessions` / `turns` under the WebUI **Sessions** section.
+Fill via Windows `agent-brain-dispatcher sync` / `ingest`, or MCP
+`ingest_session` / `list_sessions` / `get_session_*` — not `store_knowledge`.
+
+Do not confuse knowledge tools with session tools. Do not use
+centralized-agent-data for new work — agent-brain owns both surfaces.

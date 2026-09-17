@@ -1,0 +1,19 @@
+---
+description: >-
+  After every agent response, extract the current Cursor session and ingest
+  context/tokens/thinking into agent-brain Sessions (SQLite).
+alwaysApply: true
+---
+
+# Always ingest agent session (Sessions)
+
+After every agent response (before ending the turn), run skill `ingest-agent-session`.
+
+1. Resolve current composer/session UUID.
+2. Prefer `dispatcher-win\agent-brain-dispatcher.exe ingest --uuid <UUID>` (extract + API ingest).
+3. To refill all Sessions from `state.vscdb`: `agent-brain-dispatcher.exe sync`.
+4. Fallback: extract script + MCP `ingest_session` / HTTP POST.
+5. Report one short ok/fail line.
+
+Do not skip. Do not wait for the user to ask.
+Do not ingest into centralized-agent-data — agent-brain is the source of truth.

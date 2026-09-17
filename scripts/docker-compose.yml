@@ -1,64 +1,56 @@
 name: agent-brain
 
 services:
-  postgres:
-    image: postgres:16
-    container_name: agent-brain-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: agentbrain
-      POSTGRES_PASSWORD: agentbrain
-      POSTGRES_DB: agent_brain
-    volumes:
-      - agent_brain_pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U agentbrain -d agent_brain"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   qdrant:
     image: qdrant/qdrant:v1.13.2
     container_name: agent-brain-qdrant
     restart: unless-stopped
+    networks:
+      - default
     volumes:
       - agent_brain_qdrant:/qdrant/storage
 
   agent-brain-api:
     build:
-      context: ../agent-brain-api
+      context: ../api
       dockerfile: Dockerfile
     image: agent-brain-api:local
     container_name: agent-brain-api
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
-      qdrant:
-        condition: service_started
+      - qdrant
     environment:
       ADDR: ":8220"
-      DATABASE_URL: postgres://agentbrain:agentbrain@postgres:5432/agent_brain?sslmode=disable
+      SQLITE_PATH: /data/agent_brain.db
       JWT_SECRET: dev-agent-brain-jwt-change-me
       MIGRATIONS_DIR: migrations
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION: agent_brain_knowledge
       EMBEDDING_DIM: "64"
+    volumes:
+      - agent_brain_sqlite:/data
     ports:
       - "5090:8220"
+    networks:
+      - default
 
   agent-brain-webui:
     build:
-      context: ../agent-brain-webui
+      context: ../webui
       dockerfile: Dockerfile
     image: agent-brain-webui:local
     container_name: agent-brain-webui
     restart: unless-stopped
     depends_on:
       - agent-brain-api
-    ports:
-      - "5091:80"
+    networks:
+      - default
+      - pc-armin-local
 
 volumes:
-  agent_brain_pgdata:
+  agent_brain_sqlite:
   agent_brain_qdrant:
+
+networks:
+  pc-armin-local:
+    external: true
