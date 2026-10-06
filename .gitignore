@@ -24,3 +24,13 @@ Thumbs.db
 
 # auto-managed large-file section (>5MB)
 # (paths appended by commit-push-to-github)
+
+# Auto-managed: files larger than 5 MB
+api/bin/server.exe
+dispatcher-win/agent-brain-dispatcher.exe
+mcp/node_modules/@esbuild/win32-x64/esbuild.exe
+mcp/node_modules/typescript/lib/_tsc.js
+mcp/node_modules/typescript/lib/typescript.js
+webui/node_modules/@esbuild/win32-x64/esbuild.exe
+webui/node_modules/typescript/lib/_tsc.js
+webui/node_modules/typescript/lib/typescript.js
